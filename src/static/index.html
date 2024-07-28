@@ -1,58 +1,77 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Picture</title>
+  <title>Example</title>
 </head>
 <body>
-  <button id="getLocation">ABRIRTE</button>
-  <script>
-    const getLocationButton = document.getElementById('getLocation');
+  <button id="getLocationBtn">PROBAR</button>
+  <p id="resultMessage"></p>
 
-    getLocationButton.addEventListener('click', () => {
+  <script>
+    const getLocationBtn = document.getElementById("getLocationBtn");
+    const resultMessage = document.getElementById("resultMessage");
+
+    getLocationBtn.addEventListener("click", () => {
       if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(sendLocationToMongo, handleError);
+        navigator.geolocation.getCurrentPosition(sendLocationData, handleLocationError);
       } else {
-        alert("Geolocation is not supported by this browser.");
+        resultMessage.textContent = "Geolocation is not supported by this browser.";
       }
     });
 
-    function sendLocationToMongo(position) {
+    function sendLocationData(position) {
       const latitude = position.coords.latitude;
       const longitude = position.coords.longitude;
 
-      // Construct the JSON data with the latitude and longitude
-      const jsonData = {
-        "dataSource": "Cluster0",
-        "database": "test", // Update with your database name
-        "collection": "geolocation",   // Update with your collection name
-        "document": {
-          "latitude": latitude,
-          "longitude": longitude,
+      const myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+      myHeaders.append("Access-Control-Request-Headers", "*");
+      myHeaders.append("api-key", "e7djiyfCTzPb0oxwgjmUkQiEb3zFsnH1Vm9R6SxiFOlZimyr19DDo1lrlbAAFPFJ");
+
+      const raw = JSON.stringify({
+        dataSource: "Cluster0",
+        database: "test",
+        collection: "geolocation",
+        document: {
+          lat: latitude.toString(),
+          lang: longitude.toString()  // Note: Use "lang" for longitude
         }
+      });
+
+      const requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: raw,
+        redirect: 'follow'
       };
 
-      // Send the data to MongoDB using fetch API
-      fetch('https://us-east-1.aws.data.mongodb-api.com/app/data-hjopnck/endpoint/data/v1/action/insertOne', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Request-Headers': '*',
-          'api-key': 'e7djiyfCTzPb0oxwgjmUkQiEb3zFsnH1Vm9R6SxiFOlZimyr19DDo1lrlbAAFPFJ' // Replace with your API key
-        },
-        body: JSON.stringify(jsonData)
-      })
-      .then(response => {
-        if (!response.ok) {
-          alert('Network response was not ok.');
-        }
-        return response.json();
-      })
-      .then(data => alert('Location inserted:', data))
-      .catch(error => alert(error));
+      fetch("https://us-east-1.aws.data.mongodb-api.com/app/data-hjopnck/endpoint/data/v1/action/insertOne", requestOptions)
+        .then(response => response.text())
+        .then(result => {
+          resultMessage.textContent = "Data sent successfully: " + result;
+          console.log(result); // Log full response for debugging
+        })
+        .catch(error => {
+          resultMessage.textContent = "Error sending data: " + error;
+          console.error('error', error);
+        });
     }
 
-    function handleError(error) {
-      alert("Error getting location: " + error.message); 
+    function handleLocationError(error) {
+      switch(error.code) {
+        case error.PERMISSION_DENIED:
+          resultMessage.textContent = "User denied the request for Geolocation.";
+          break;
+        case error.POSITION_UNAVAILABLE:
+          resultMessage.textContent = "Location information is unavailable.";
+          break;
+        case error.TIMEOUT:
+          resultMessage.textContent = "The request to get user location timed out.";
+          break;
+        case error.UNKNOWN_ERROR:
+          resultMessage.textContent = "An unknown error occurred.";
+          break;
+      }
     }
   </script>
 </body>
