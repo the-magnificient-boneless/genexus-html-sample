@@ -19,7 +19,51 @@
   <hr>
   
   <footer>
-    <p>Copyright &copy; 2024. All rights reserved.</p>
+    <script>
+async function storeLocation(lat, lng) {
+  // Replace with your actual MongoDB connection string
+  const uri = "mongodb+srv://admintictactoe:U9Tc3K5xIsdD5J3k@cluster0.jhu9vtx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+
+  try {
+    // Create a new MongoClient instance
+    const client = new MongoClient(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+
+    // Connect to the MongoDB   
+ server
+    await client.connect();
+    const database = client.db("your_database_name");
+    const collection = database.collection("your_collection_name");   
+
+
+    // Create a new document with latitude and longitude
+    const location = { latitude: lat, longitude: lng };
+
+    // Insert the document into the collection
+    await collection.insertOne(location);
+
+    console.log("Location stored successfully in MongoDB!");
+  } catch (error) {
+    console.error("Error storing location:", error);
+  } finally {
+    // Close the connection to MongoDB
+    await client.close();
+  }
+}
+
+// Get location from map API (replace with your specific API call)
+navigator.geolocation.getCurrentPosition((position) => {
+  const latitude = position.coords.latitude;
+  const longitude = position.coords.longitude;   
+
+
+  // Store the retrieved location in MongoDB
+  storeLocation(latitude, longitude);
+});
+
+    </script>
   </footer>
 </body>
 </html>
