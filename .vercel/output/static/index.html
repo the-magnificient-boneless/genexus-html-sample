@@ -23,13 +23,11 @@
       // Construct the JSON data with the latitude and longitude
       const jsonData = {
         "dataSource": "Cluster0",
-        "database": "sample_mflix", // Update with your database name
-        "collection": "comments",   // Update with your collection name
+        "database": "test", // Update with your database name
+        "collection": "geolocation",   // Update with your collection name
         "document": {
-          "status": "open",
           "latitude": latitude,
           "longitude": longitude,
-          "text": "Do the dishes" // You can remove/customize this field
         }
       };
 
